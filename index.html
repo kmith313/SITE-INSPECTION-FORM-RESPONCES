@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIR 2026-27 | Substation Inspection Report</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f5a623">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #161d27;
+    --panel: #1e2733;
+    --panel-2: #232e3c;
+    --line: #303c4b;
+    --amber: #f5a623;
+    --amber-dim: #8a6420;
+    --text: #e9edf2;
+    --muted: #8b97a6;
+    --ok: #4cae7d;
+    --bad: #e2543f;
+    --mono: 'JetBrains Mono', monospace;
+    --disp: 'Rajdhani', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 500px at 50% -100px, #24303f 0%, transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    min-height:100vh;
+    padding-bottom:80px;
+  }
+
+  /* hazard stripe top bar */
+  .hazard{
+    height:8px;
+    width:100%;
+    background:repeating-linear-gradient(135deg, var(--amber) 0 14px, #1a1f14 14px 28px);
+  }
+
+  header.top{
+    max-width:760px;
+    margin:0 auto;
+    padding:34px 20px 22px;
+    text-align:center;
+    position:relative;
+  }
+  .app-icon{
+    width:64px;
+    height:64px;
+    border-radius:16px;
+    margin:0 auto 14px;
+    display:block;
+    box-shadow:0 8px 24px rgba(0,0,0,.35), 0 0 0 1px var(--line);
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    letter-spacing:.18em;
+    font-size:11px;
+    color:var(--amber);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:var(--disp);
+    font-weight:700;
+    font-size:clamp(28px,5vw,40px);
+    margin:0 0 6px;
+    letter-spacing:.01em;
+    line-height:1.1;
+  }
+  .hi{
+    font-size:15px;
+    color:var(--muted);
+    margin:0 0 18px;
+  }
+  .meta-line{
+    display:flex;
+    justify-content:center;
+    gap:18px;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+  }
+  .meta-line span b{color:var(--text);font-weight:500;}
+
+  /* gauge signature element */
+  .gauge-wrap{
+    max-width:760px;
+    margin:26px auto 0;
+    padding:0 20px;
+  }
+  .gauge{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 20px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  .gauge-label{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    white-space:nowrap;
+  }
+  .gauge-track{
+    flex:1;
+    height:8px;
+    border-radius:6px;
+    background:#131a22;
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .gauge-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, var(--amber-dim), var(--amber));
+    transition:width .35s ease;
+  }
+  .gauge-count{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--amber);
+    min-width:52px;
+    text-align:right;
+  }
+
+  form{
+    max-width:760px;
+    margin:0 auto;
+    padding:26px 20px 0;
+  }
+
+  .section{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:26px 24px 30px;
+    margin-bottom:20px;
+    position:relative;
+  }
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    margin-bottom:20px;
+    padding-bottom:14px;
+    border-bottom:1px dashed var(--line);
+  }
+  .step-no{
+    font-family:var(--disp);
+    font-size:26px;
+    font-weight:700;
+    color:var(--amber);
+    line-height:1;
+  }
+  .section-titles h2{
+    font-family:var(--disp);
+    font-size:19px;
+    font-weight:600;
+    margin:0;
+    letter-spacing:.02em;
+  }
+  .section-titles p{
+    margin:2px 0 0;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  .grid .full{grid-column:1 / -1;}
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr;}
+  }
+
+  label.field{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+  }
+  label.field .lab{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--text);
+  }
+  label.field .lab .hint{
+    font-weight:400;
+    color:var(--muted);
+    font-size:11.5px;
+    margin-left:5px;
+  }
+  input[type=text],
+  input[type=date],
+  input[type=tel],
+  input[type=number],
+  input[type=url],
+  select,
+  textarea{
+    background:#131a22;
+    border:1px solid var(--line);
+    color:var(--text);
+    border-radius:9px;
+    padding:11px 12px;
+    font-family:var(--body);
+    font-size:14px;
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+    width:100%;
+  }
+  input[type=text].mono, input[type=number].mono{font-family:var(--mono);}
+  textarea{resize:vertical;min-height:80px;font-family:var(--body);}
+  input:focus, select:focus, textarea:focus{
+    border-color:var(--amber);
+    box-shadow:0 0 0 3px rgba(245,166,35,.15);
+  }
+  input[type=file]{
+    background:#131a22;
+    border:1px dashed var(--line);
+    color:var(--muted);
+    border-radius:9px;
+    padding:14px 12px;
+    font-family:var(--body);
+    font-size:13px;
+    cursor:pointer;
+  }
+  input[type=file]::file-selector-button{
+    background:var(--amber);
+    color:#1a1206;
+    border:none;
+    border-radius:7px;
+    padding:7px 14px;
+    font-family:var(--disp);
+    font-weight:700;
+    font-size:12.5px;
+    letter-spacing:.02em;
+    cursor:pointer;
+    margin-right:12px;
+  }
+  .photo-preview{
+    margin-top:10px;
+    max-width:160px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    display:none;
+  }
+  .photo-preview.show{display:block;}
+  select{appearance:none; background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat:no-repeat;
+  }
+
+  /* checklist rows: Yes/No toggle */
+  .checklist{display:flex;flex-direction:column;gap:10px;}
+  .check-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:11px 14px;
+    background:#131a22;
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  .check-row .ck-lab{font-size:13.5px;font-weight:500;}
+  .check-row .ck-lab .hi-small{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px;}
+  .toggle{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+    flex-shrink:0;
+  }
+  .toggle input{position:absolute;opacity:0;pointer-events:none;}
+  .toggle label{
+    padding:7px 16px;
+    font-size:12.5px;
+    font-weight:600;
+    font-family:var(--mono);
+    color:var(--muted);
+    cursor:pointer;
+    background:transparent;
+    transition:.15s;
+  }
+  .toggle input:checked + label.yes{background:var(--ok);color:#0d1712;}
+  .toggle input:checked + label.no{background:var(--bad);color:#1a0b08;}
+  .toggle label.yes{border-right:1px solid var(--line);}
+
+  /* condition segmented control */
+  .cond-group{display:flex;flex-direction:column;gap:10px;}
+  .cond-row .ck-lab{font-size:13.5px;font-weight:500;}
+  .seg{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .seg input{position:absolute;opacity:0;pointer-events:none;}
+  .seg label{
+    padding:7px 14px;
+    font-size:12px;
+    font-weight:600;
+    font-family:var(--mono);
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .seg input:checked + label.sat{background:var(--ok);color:#0d1712;}
+  .seg input:checked + label.unsat{background:var(--bad);color:#1a0b08;}
+  .seg label.sat{border-right:1px solid var(--line);}
+
+  .helper{
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:4px;
+    line-height:1.4;
+  }
+
+  button[type=submit]{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:12px;
+    background:var(--amber);
+    color:#1a1206;
+    font-family:var(--disp);
+    font-size:17px;
+    font-weight:700;
+    letter-spacing:.03em;
+    cursor:pointer;
+    margin-top:6px;
+    transition:transform .1s ease, background .15s;
+  }
+  button[type=submit]:hover{background:#ffb545;}
+  button[type=submit]:active{transform:scale(.99);}
+  button[type=submit]:disabled{opacity:.6;cursor:not-allowed;}
+
+  .status-msg{
+    max-width:760px;
+    margin:16px auto 0;
+    padding:0 20px;
+    font-family:var(--mono);
+    font-size:13px;
+    text-align:center;
+    display:none;
+  }
+  .status-msg.show{display:block;}
+  .status-msg.ok{color:var(--ok);}
+  .status-msg.err{color:var(--bad);}
+
+  .config-note{
+    max-width:760px;
+    margin:22px auto 0;
+    padding:16px 20px;
+    border:1px dashed var(--amber-dim);
+    border-radius:12px;
+    background:rgba(245,166,35,.05);
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.6;
+  }
+  .config-note code{
+    font-family:var(--mono);
+    color:var(--amber);
+    background:#131a22;
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:11.5px;
+  }
+
+  footer.foot{
+    text-align:center;
+    padding:26px 20px 10px;
+    font-size:11px;
+    color:#59636f;
+    font-family:var(--mono);
+  }
+
+  /* ===== success overlay ===== */
+  .success-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(10,14,19,.86);
+    backdrop-filter:blur(6px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+    overflow:hidden;
+  }
+  .success-overlay.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .success-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:40px 32px 34px;
+    max-width:340px;
+    width:88%;
+    text-align:center;
+    transform:scale(.85) translateY(10px);
+    opacity:0;
+    transition:transform .4s cubic-bezier(.2,1.4,.4,1), opacity .3s ease;
+  }
+  .success-overlay.show .success-card{
+    transform:scale(1) translateY(0);
+    opacity:1;
+  }
+  .check-circle{
+    width:84px;
+    height:84px;
+    margin:0 auto 20px;
+  }
+  .check-circle circle{
+    fill:none;
+    stroke:var(--ok);
+    stroke-width:5;
+    stroke-dasharray:245;
+    stroke-dashoffset:245;
+  }
+  .check-circle path{
+    fill:none;
+    stroke:var(--ok);
+    stroke-width:6;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray:36;
+    stroke-dashoffset:36;
+  }
+  .success-overlay.show .check-circle circle{
+    animation:drawCircle .5s ease forwards .05s;
+  }
+  .success-overlay.show .check-circle path{
+    animation:drawCheck .3s ease forwards .5s;
+  }
+  @keyframes drawCircle{ to{ stroke-dashoffset:0; } }
+  @keyframes drawCheck{ to{ stroke-dashoffset:0; } }
+
+  .success-card h3{
+    font-family:var(--disp);
+    font-size:22px;
+    font-weight:700;
+    margin:0 0 6px;
+    color:var(--text);
+  }
+  .success-card p{
+    font-size:13px;
+    color:var(--muted);
+    margin:0 0 22px;
+    line-height:1.5;
+  }
+  .success-close{
+    background:var(--amber);
+    color:#1a1206;
+    border:none;
+    border-radius:10px;
+    padding:11px 28px;
+    font-family:var(--disp);
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .confetti{
+    position:absolute;
+    top:-10px;
+    width:8px;
+    height:14px;
+    opacity:0;
+    border-radius:2px;
+  }
+  .success-overlay.show .confetti{
+    animation:fall 1.6s ease-in forwards;
+  }
+  @keyframes fall{
+    0%{ opacity:1; transform:translateY(0) rotate(0deg); }
+    100%{ opacity:.9; transform:translateY(110vh) rotate(540deg); }
+  }
+  /* ===== tab bar ===== */
+  .tab-bar{
+    max-width:760px;
+    margin:24px auto 0;
+    padding:0 20px;
+    display:flex;
+    gap:10px;
+  }
+  .tab-btn{
+    flex:1;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--muted);
+    font-family:var(--disp);
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:.02em;
+    padding:13px 10px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .tab-btn.active{
+    background:var(--amber);
+    color:#1a1206;
+    border-color:var(--amber);
+  }
+
+  /* ===== reports tab ===== */
+  .reports-wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:20px 20px 0;
+  }
+  .reports-toolbar{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .reports-toolbar input[type=text]{
+    flex:1;
+  }
+  .refresh-btn{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    border-radius:9px;
+    padding:0 16px;
+    font-family:var(--mono);
+    font-size:13px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .refresh-btn:hover{border-color:var(--amber);}
+  .reports-status{
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--muted);
+    text-align:center;
+    padding:20px 0;
+  }
+  .report-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .report-info{flex:1;min-width:200px;}
+  .report-info .r-division{
+    font-family:var(--disp);
+    font-weight:700;
+    font-size:16px;
+    color:var(--text);
+  }
+  .report-info .r-sub{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:3px;
+  }
+  .report-info .r-pr{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--amber);
+    margin-top:6px;
+    display:inline-block;
+    background:rgba(245,166,35,.1);
+    padding:2px 8px;
+    border-radius:6px;
+  }
+  .pdf-btn{
+    background:var(--ok);
+    color:#0d1712;
+    text-decoration:none;
+    font-family:var(--disp);
+    font-weight:700;
+    font-size:12.5px;
+    padding:9px 16px;
+    border-radius:9px;
+    white-space:nowrap;
+  }
+  .pdf-pending{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    border:1px dashed var(--line);
+    padding:8px 14px;
+    border-radius:9px;
+    white-space:nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="hazard"></div>
+
+<header class="top">
+  <img src="icon-192.png" alt="SIR Form" class="app-icon">
+  <div class="eyebrow">PUVVNL &middot; Distribution Zone Azamgarh</div>
+  <h1>SIR Field Inspection Form</h1>
+  <p class="hi">वितरण ट्रांसफार्मर क्षति निरीक्षण रिपोर्ट &nbsp;·&nbsp; Academic / Field Year 2026–27</p>
+  <div class="meta-line">
+    <span>Zone: <b>AZAMGARH</b></span>
+    <span>Form: <b>SIR-2026-27</b></span>
+    <span>Mode: <b>Field / Site Entry</b></span>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button type="button" class="tab-btn active" id="tabBtnNew">➕ New Entry</button>
+  <button type="button" class="tab-btn" id="tabBtnReports">📋 Submitted Reports</button>
+</div>
+
+<div id="tabNewEntry">
+
+<div class="gauge-wrap">
+  <div class="gauge">
+    <div class="gauge-label">Checklist filled</div>
+    <div class="gauge-track"><div class="gauge-fill" id="gaugeFill"></div></div>
+    <div class="gauge-count" id="gaugeCount">0/8</div>
+  </div>
+</div>
+
+<form id="sirForm">
+
+  <!-- 1. Site & location -->
+  <div class="section">
+    <div class="section-head">
+      <div class="step-no">01</div>
+      <div class="section-titles">
+        <h2>Site &amp; Location</h2>
+        <p>स्थान का विवरण दर्ज करें</p>
+      </div>
+    </div>
+    <div class="grid">
+      <label class="field">
+        <span class="lab">Date of Damage <span class="hint">क्षति की तारीख</span></span>
+        <input type="date" name="dateOfDamage" required>
+      </label>
+      <label class="field">
+        <span class="lab">Date of SIR <span class="hint">निरीक्षण तारीख</span></span>
+        <input type="date" name="dateOfSIR" required>
+      </label>
+      <label class="field">
+        <span class="lab">Zone</span>
+        <input type="text" name="zone" value="AZAMGARH" required>
+      </label>
+      <label class="field">
+        <span class="lab">Circle</span>
+        <select name="circle" required>
+          <option value="" disabled selected>Select circle</option>
+          <option>EDC-I AZAMGARH</option>
+          <option>EDC-II AZAMGARH</option>
+          <option>EDC-MAU</option>
+          <option>EDC-BALLIA</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="lab">Division Name <span class="hint">डिवीजन</span></span>
+        <select name="divisionName" required>
+          <option value="" disabled selected>Select division</option>
+          <option>EDD I AZAMGARH</option>
+          <option>EDD II AZAMGARH</option>
+          <option>EDD III AZAMGARH</option>
+          <option>EDD IV AZAMGARH</option>
+          <option>EDD V AZAMGARH</option>
+          <option>EDD VI AZAMGARH</option>
+          <option>EDD I MAU</option>
+          <option>EDD II MAU</option>
+          <option>EDD III MAU</option>
+          <option>EDD I BALLIA</option>
+          <option>EDD II BALLIA</option>
+          <option>EDD III BALLIA</option>
+          <option>EDD IV BALLIA</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="lab">Substation Name <span class="hint">उपकेंद्र</span></span>
+        <input type="text" name="substationName" required>
+      </label>
+      <label class="field full">
+        <span class="lab">Place / Location of DT <span class="hint">डीटी का स्थान</span></span>
+        <input type="text" name="placeOfDT" required>
+      </label>
+      <label class="field">
+        <span class="lab">Capacity of DT</span>
+        <select name="capacityOfDT" required>
+          <option value="" disabled selected>Select capacity</option>
+          <option>63</option>
+          <option>100</option>
+          <option>160</option>
+          <option>250</option>
+          <option>400</option>
+          <option>630</option>
+          <option>1000</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="lab">PR No.</span>
+        <input type="text" class="mono" name="prNo">
+      </label>
+    </div>
+  </div>
+
+  <!-- 2. JE + identifiers -->
+  <div class="section">
+    <div class="section-head">
+      <div class="step-no">02</div>
+      <div class="section-titles">
+        <h2>JE &amp; Identifiers</h2>
+        <p>कनिष्ठ अभियंता एवं पहचान संख्या</p>
+      </div>
+    </div>
+    <div class="grid">
+      <label class="field">
+        <span class="lab">Name of JE (Distribution)</span>
+        <input type="text" name="jeName" required>
+      </label>
+      <label class="field">
+        <span class="lab">JE Mobile No.</span>
+        <input type="tel" class="mono" name="jeMobile" pattern="[0-9]{10}" placeholder="10-digit number">
+      </label>
+      <label class="field">
+        <span class="lab">Data ID</span>
+        <input type="text" class="mono" name="dataId">
+      </label>
+      <label class="field">
+        <span class="lab">Unique No.</span>
+        <input type="text" class="mono" name="uniqueNo">
+      </label>
+    </div>
+  </div>
+
+  <!-- 3. Checklist -->
+  <div class="section">
+    <div class="section-head">
+      <div class="step-no">03</div>
+      <div class="section-titles">
+        <h2>Protection &amp; Safety Checklist</h2>
+        <p>यहाँ हाँ / नहीं चुनें</p>
+      </div>
+    </div>
+    <div class="checklist" id="checklistGroup">
+      <!-- rows injected via JS for reliability, but written statically here -->
+      <div class="check-row" data-check>
+        <span class="ck-lab">HT Protection <span class="hi-small">एचटी प्रोटेक्शन</span></span>
+        <div class="toggle">
+          <input type="radio" name="htProtection" id="ht_y" value="YES" required><label class="yes" for="ht_y">YES</label>
+          <input type="radio" name="htProtection" id="ht_n" value="NO"><label class="no" for="ht_n">NO</label>
+        </div>
+      </div>
+      <div class="check-row" data-check>
+        <span class="ck-lab">LT Protection <span class="hi-small">एलटी प्रोटेक्शन</span></span>
+        <div class="toggle">
+          <input type="radio" name="ltProtection" id="lt_y" value="YES" required><label class="yes" for="lt_y">YES</label>
+          <input type="radio" name="ltProtection" id="lt_n" value="NO"><label class="no" for="lt_n">NO</label>
+        </div>
+      </div>
+      <div class="check-row" data-check>
+        <span class="ck-lab">Body Earthing <span class="hi-small">बॉडी अर्थिंग</span></span>
+        <div class="toggle">
+          <input type="radio" name="bodyEarthing" id="be_y" value="YES" required><label class="yes" for="be_y">YES</label>
+          <input type="radio" name="bodyEarthing" id="be_n" value="NO"><label class="no" for="be_n">NO</label>
+        </div>
+      </div>
+      <div class="check-row" data-check>
+        <span class="ck-lab">Neutral Earthing <span class="hi-small">न्यूट्रल अर्थिंग</span></span>
+        <div class="toggle">
+          <input type="radio" name="neutralEarthing" id="ne_y" value="YES" required><label class="yes" for="ne_y">YES</label>
+          <input type="radio" name="neutralEarthing" id="ne_n" value="NO"><label class="no" for="ne_n">NO</label>
+        </div>
+      </div>
+      <div class="check-row" data-check>
+        <span class="ck-lab">On-site Maintenance Required <span class="hi-small">रखरखाव आवश्यक</span></span>
+        <div class="toggle">
+          <input type="radio" name="onsiteMaint" id="om_y" value="YES" required><label class="yes" for="om_y">YES</label>
+          <input type="radio" name="onsiteMaint" id="om_n" value="NO"><label class="no" for="om_n">NO</label>
+        </div>
+      </div>
+      <div class="check-row" data-check>
+        <span class="ck-lab">Picture Taken <span class="hi-small">फोटो लिया गया</span></span>
+        <div class="toggle">
+          <input type="radio" name="pictureTaken" id="pt_y" value="YES" required><label class="yes" for="pt_y">YES</label>
+          <input type="radio" name="pictureTaken" id="pt_n" value="NO"><label class="no" for="pt_n">NO</label>
+        </div>
+      </div>
+      <div class="check-row" data-check>
+        <span class="ck-lab">Oil Level <span class="hi-small">तेल का स्तर</span></span>
+        <div class="toggle">
+          <input type="radio" name="oilLevel" id="ol_y" value="YES" required><label class="yes" for="ol_y">YES</label>
+          <input type="radio" name="oilLevel" id="ol_n" value="NO"><label class="no" for="ol_n">NO</label>
+        </div>
+      </div>
+      <div class="check-row" data-check>
+        <span class="ck-lab">Repeated Damage <span class="hi-small">बार-बार क्षति</span></span>
+        <div class="toggle">
+          <input type="radio" name="repeatedDamage" id="rd_y" value="YES" required><label class="yes" for="rd_y">YES</label>
+          <input type="radio" name="repeatedDamage" id="rd_n" value="NO"><label class="no" for="rd_n">NO</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Load details -->
+  <div class="section">
+    <div class="section-head">
+      <div class="step-no">04</div>
+      <div class="section-titles">
+        <h2>Load Details</h2>
+        <p>भार का विवरण</p>
+      </div>
+    </div>
+    <div class="grid">
+      <label class="field">
+        <span class="lab">Connected Load (KW) <span class="hint">optional</span></span>
+        <input type="text" class="mono" name="connectedLoad">
+      </label>
+      <label class="field">
+        <span class="lab">No. of Connections (Qty)</span>
+        <input type="number" class="mono" name="noOfConnections" min="0">
+      </label>
+    </div>
+  </div>
+
+  <!-- 5. Condition assessment -->
+  <div class="section">
+    <div class="section-head">
+      <div class="step-no">05</div>
+      <div class="section-titles">
+        <h2>Condition Assessment</h2>
+        <p>स्थिति आंकलन — संतोषजनक / असंतोषजनक</p>
+      </div>
+    </div>
+    <div class="cond-group">
+      <div class="check-row cond-row">
+        <span class="ck-lab">LT Cable Condition</span>
+        <div class="seg">
+          <input type="radio" name="ltCableCondition" id="lc_s" value="SATISFACTORY" required><label class="sat" for="lc_s">SAT</label>
+          <input type="radio" name="ltCableCondition" id="lc_u" value="UN_SATISFACTORY"><label class="unsat" for="lc_u">UNSAT</label>
+        </div>
+      </div>
+      <div class="check-row cond-row">
+        <span class="ck-lab">Plinth / DP Condition</span>
+        <div class="seg">
+          <input type="radio" name="plinthCondition" id="pc_s" value="SATISFACTORY" required><label class="sat" for="pc_s">SAT</label>
+          <input type="radio" name="plinthCondition" id="pc_u" value="UN_SATISFACTORY"><label class="unsat" for="pc_u">UNSAT</label>
+        </div>
+      </div>
+      <div class="check-row cond-row">
+        <span class="ck-lab">Fencing Condition</span>
+        <div class="seg">
+          <input type="radio" name="fencingCondition" id="fc_s" value="SATISFACTORY" required><label class="sat" for="fc_s">SAT</label>
+          <input type="radio" name="fencingCondition" id="fc_u" value="UN_SATISFACTORY"><label class="unsat" for="fc_u">UNSAT</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Remarks & photo -->
+  <div class="section">
+    <div class="section-head">
+      <div class="step-no">06</div>
+      <div class="section-titles">
+        <h2>Remarks &amp; Photograph</h2>
+        <p>टिप्पणी एवं फोटो लिंक</p>
+      </div>
+    </div>
+    <div class="grid">
+      <label class="field full">
+        <span class="lab">Any Other Remark <span class="hint">टिप्पणी</span></span>
+        <textarea name="remark" placeholder="e.g. Earthing not proper"></textarea>
+      </label>
+      <label class="field full">
+        <span class="lab">Photograph <span class="hint">DT / site photo, optional</span></span>
+        <input type="file" name="photoFile" id="photoFile" accept="image/*" capture="environment">
+        <img class="photo-preview" id="photoPreview" alt="Preview">
+        <span class="helper" id="photoHelper">फोटो चुनने पर यह अपने आप आपके Google Drive फ़ोल्डर में सेव हो जाएगी और उसका लिंक शीट में जुड़ जाएगा।</span>
+      </label>
+    </div>
+  </div>
+
+  <button type="submit" id="submitBtn">Submit Inspection Report</button>
+  <div class="status-msg" id="statusMsg"></div>
+
+  <div class="config-note">
+    <b style="color:var(--text)">Setup — पहली बार सेटअप करें:</b><br>
+    This form saves straight into your Google Sheet via a small Google Apps Script, and uploads the
+    photo directly to your Google Drive folder. Open the sheet →
+    <code>Extensions → Apps Script</code>, paste the provided <code>Code.gs</code> script, deploy as
+    <code>Web App</code> (access: <i>Anyone</i>), then paste the deployment URL into the
+    <code>SCRIPT_URL</code> constant near the top of this file's script and re-save. Full script is in the
+    accompanying <code>google-apps-script.gs</code> file.
+  </div>
+</form>
+
+</div><!-- /tabNewEntry -->
+
+<div id="tabReports" style="display:none">
+  <div class="reports-wrap">
+    <div class="reports-toolbar">
+      <input type="text" id="reportsSearch" placeholder="Search: division, substation, place, PR no...">
+      <button type="button" class="refresh-btn" id="reportsRefresh">⟳ Refresh</button>
+    </div>
+    <div id="reportsList"></div>
+  </div>
+</div>
+
+<footer class="foot">SIR 2026-27 · Field data entry · PUVVNL Azamgarh</footer>
+
+<div class="success-overlay" id="successOverlay">
+  <div class="success-card">
+    <svg class="check-circle" viewBox="0 0 84 84">
+      <circle cx="42" cy="42" r="39"/>
+      <path d="M25 43 L37 55 L60 30"/>
+    </svg>
+    <h3>Report Submitted! ✅</h3>
+    <p>रिपोर्ट सफलतापूर्वक सेव हो गई है।<br>Data saved to Google Sheet, photo saved to Drive.</p>
+    <button type="button" class="success-close" id="successClose">New Entry / नई एंट्री</button>
+  </div>
+</div>
+
+<script>
+  // ====== 1) PASTE YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL HERE ======
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJxZsEz-sXGOTSxsUQgeVGzBLDQIjglrmiM47UKejvTqI8c-_8RQ6jFvOTzQAZfaKG/exec";
+  // =========================================================================
+
+  const form = document.getElementById('sirForm');
+  const statusMsg = document.getElementById('statusMsg');
+  const submitBtn = document.getElementById('submitBtn');
+  const gaugeFill = document.getElementById('gaugeFill');
+  const gaugeCount = document.getElementById('gaugeCount');
+
+  const checkNames = ['htProtection','ltProtection','bodyEarthing','neutralEarthing','onsiteMaint','pictureTaken','oilLevel','repeatedDamage'];
+
+  // ===== success overlay + confetti =====
+  const successOverlay = document.getElementById('successOverlay');
+  const successClose = document.getElementById('successClose');
+  const confettiColors = ['#f5a623','#4cae7d','#e2543f','#8ea6c4'];
+
+  function spawnConfetti(){
+    const existing = successOverlay.querySelectorAll('.confetti');
+    existing.forEach(el => el.remove());
+    for (let i = 0; i < 26; i++){
+      const el = document.createElement('div');
+      el.className = 'confetti';
+      el.style.left = Math.random()*100 + '%';
+      el.style.background = confettiColors[i % confettiColors.length];
+      el.style.animationDelay = (Math.random()*0.4) + 's';
+      el.style.animationDuration = (1.2 + Math.random()*0.8) + 's';
+      successOverlay.appendChild(el);
+    }
+  }
+
+  function showSuccess(){
+    spawnConfetti();
+    successOverlay.classList.add('show');
+  }
+  function hideSuccess(){
+    successOverlay.classList.remove('show');
+  }
+  successClose.addEventListener('click', hideSuccess);
+  successOverlay.addEventListener('click', (e) => { if (e.target === successOverlay) hideSuccess(); });
+
+  // ===== tab switching =====
+  const tabBtnNew = document.getElementById('tabBtnNew');
+  const tabBtnReports = document.getElementById('tabBtnReports');
+  const tabNewEntry = document.getElementById('tabNewEntry');
+  const tabReports = document.getElementById('tabReports');
+  let reportsLoadedOnce = false;
+
+  function showTab(which){
+    if (which === 'new'){
+      tabNewEntry.style.display = '';
+      tabReports.style.display = 'none';
+      tabBtnNew.classList.add('active');
+      tabBtnReports.classList.remove('active');
+    } else {
+      tabNewEntry.style.display = 'none';
+      tabReports.style.display = '';
+      tabBtnReports.classList.add('active');
+      tabBtnNew.classList.remove('active');
+      if (!reportsLoadedOnce){ reportsLoadedOnce = true; loadReports(); }
+    }
+  }
+  tabBtnNew.addEventListener('click', () => showTab('new'));
+  tabBtnReports.addEventListener('click', () => showTab('reports'));
+
+  // ===== submitted reports list =====
+  const reportsList = document.getElementById('reportsList');
+  const reportsSearch = document.getElementById('reportsSearch');
+  const reportsRefresh = document.getElementById('reportsRefresh');
+  let allReports = [];
+
+  function escapeHtml(s){
+    return String(s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function renderReports(list){
+    if (!list.length){
+      reportsList.innerHTML = '<div class="reports-status">कोई रिपोर्ट नहीं मिली / No reports found.</div>';
+      return;
+    }
+    reportsList.innerHTML = list.map(r => `
+      <div class="report-card">
+        <div class="report-info">
+          <div class="r-division">${escapeHtml(r.division)}</div>
+          <div class="r-sub">${escapeHtml(r.substation)}${r.place ? ' — ' + escapeHtml(r.place) : ''}</div>
+          <div class="r-pr">PR: ${escapeHtml(r.prNo || '—')}</div>
+        </div>
+        ${r.pdfUrl
+          ? `<a class="pdf-btn" href="${escapeHtml(r.pdfUrl)}" target="_blank" rel="noopener">⬇ Download PDF</a>`
+          : `<span class="pdf-pending">PDF pending…</span>`}
+      </div>
+    `).join('');
+  }
+
+  function applyFilter(){
+    const q = reportsSearch.value.trim().toLowerCase();
+    if (!q) { renderReports(allReports); return; }
+    const filtered = allReports.filter(r =>
+      (r.division + ' ' + r.substation + ' ' + r.place + ' ' + r.prNo).toLowerCase().includes(q)
+    );
+    renderReports(filtered);
+  }
+  reportsSearch.addEventListener('input', applyFilter);
+
+  async function loadReports(){
+    reportsList.innerHTML = '<div class="reports-status">Loading reports…</div>';
+    if (!SCRIPT_URL || SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
+      reportsList.innerHTML = '<div class="reports-status">⚠ SCRIPT_URL not configured yet.</div>';
+      return;
+    }
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=list');
+      const json = await res.json();
+      if (json.result !== 'success') throw new Error(json.error || 'Unknown error');
+      allReports = json.reports || [];
+      applyFilter();
+    } catch (err) {
+      reportsList.innerHTML = '<div class="reports-status">✗ Could not load reports. Try refresh.</div>';
+    }
+  }
+  reportsRefresh.addEventListener('click', loadReports);
+
+  function updateGauge(){
+    let filled = 0;
+    checkNames.forEach(n => { if (form.elements[n] && form.elements[n].value) filled++; });
+    const pct = Math.round((filled/checkNames.length)*100);
+    gaugeFill.style.width = pct + '%';
+    gaugeCount.textContent = filled + '/' + checkNames.length;
+  }
+  form.addEventListener('change', updateGauge);
+  updateGauge();
+
+  // photo preview
+  const photoFile = document.getElementById('photoFile');
+  const photoPreview = document.getElementById('photoPreview');
+  photoFile.addEventListener('change', function(){
+    const f = photoFile.files[0];
+    if (!f) { photoPreview.classList.remove('show'); return; }
+    const reader = new FileReader();
+    reader.onload = ev => { photoPreview.src = ev.target.result; photoPreview.classList.add('show'); };
+    reader.readAsDataURL(f);
+  });
+
+  function fileToBase64(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]); // strip data:...;base64, prefix
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    statusMsg.className = 'status-msg';
+    statusMsg.textContent = '';
+
+    if (!SCRIPT_URL || SCRIPT_URL.indexOf('PASTE_YOUR') === 0) {
+      statusMsg.textContent = '⚠ SCRIPT_URL not configured yet — see setup note below the form.';
+      statusMsg.classList.add('err','show');
+      return;
+    }
+
+    const fd = new FormData(form);
+    fd.delete('photoFile'); // file object can't go through JSON directly, handled separately below
+    const data = Object.fromEntries(fd.entries());
+    data.timestamp = new Date().toLocaleString('en-GB', { timeZone: 'Asia/Kolkata' });
+
+    const f = photoFile.files[0];
+    if (f) {
+      if (f.size > 8 * 1024 * 1024) {
+        statusMsg.textContent = '⚠ Photo too large (max 8 MB). Please choose a smaller image.';
+        statusMsg.classList.add('err','show');
+        return;
+      }
+      submitBtn.textContent = 'Uploading photo…';
+      submitBtn.disabled = true;
+      data.photoBase64 = await fileToBase64(f);
+      data.photoName = f.name;
+      data.photoType = f.type || 'image/jpeg';
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving…';
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Apps Script web apps don't return CORS headers
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(data)
+      });
+      // no-cors means we can't read the response — assume success if no network error
+      statusMsg.textContent = '';
+      statusMsg.classList.remove('show');
+      showSuccess();
+      form.reset();
+      photoPreview.classList.remove('show');
+      updateGauge();
+      reportsLoadedOnce = false; // force refresh next time reports tab opens
+    } catch (err) {
+      statusMsg.textContent = '✗ Could not reach the sheet. Check your internet connection or SCRIPT_URL.';
+      statusMsg.classList.add('err','show');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Inspection Report';
+    }
+  });
+</script>
+
+</body>
+</html>
