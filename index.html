@@ -167,7 +167,7 @@ const SCRIPT_URL='https://script.google.com/macros/s/AKfycbzJxZsEz-sXGOTSxsUQgeV
 const $=s=>document.querySelector(s),today=new Date().toISOString().slice(0,10);
 const YN=['YES','NO'],SAT=['SATISFACTORY','UN_SATISFACTORY'];
 const DIVS={'EDC-I AZAMGARH':['EDD-I','EDD-II','EDD-III'],'EDC-II AZAMGARH':['EDD-IV','EDD-V','EDD-VI'],'EDC-MAU':['EDD I MAU','EDD II MAU'],'EDC-BALLIA':['EDD I BALLIA','EDD II BALLIA','EDD III BALLIA','EDD IV BALLIA']};
-const S1=[['dateOfDamage','Date of damage','date'],['dateOfSIR','Date of SIR','date'],['zone','Zone','sel',['AZAMGARH']],['circle','Circle','sel',Object.keys(DIVS)],['divisionName','Division name','sel',[]],['substationName','Substation name','text'],['placeOfDT','Place / location of DT','text'],['capacityOfDT','Capacity of DT','sel',['25 KVA','63 KVA','100 KVA','200 KVA','250 KVA','315 KVA','400 KVA','630 KVA']]];
+const S1=[['dateOfDamage','Date of damage','date'],['dateOfSIR','Date of SIR','date'],['zone','Zone','sel',['AZAMGARH']],['circle','Circle','sel',Object.keys(DIVS)],['divisionName','Division name','sel',[]],['substationName','Substation name','text'],['placeOfDT','Place / location of DT','text'],['capacityOfDT','Capacity of DT','sel',['63 KVA','100 KVA','160 KVA','250 KVA','400 KVA','630 KVA','1000 KVA']]];
 const S2=[['jeName','Name of JE (Distribution)','text'],['jeMobile','JE mobile no.','tel'],['dataId','Data ID','text'],['uniqueNo','Unique No.','text'],['prNo','PR No.','text']];
 const S3=[['htProtection','HT protection','seg',YN],['ltProtection','LT protection','seg',YN],['bodyEarthing','Body earthing','seg',YN],['neutralEarthing','Neutral earthing','seg',YN],['onsiteMaint','On-site maintenance required','seg',YN],['pictureTaken','Picture taken','seg',YN],['oilLevel','Oil level','seg',YN],['repeatedDamage','Repeated damage','seg',YN]];
 const S4=[['connectedLoad','Connected load (kW)','text'],['noOfConnections','No. of connections connected (qty)','text'],['ltCableCondition','LT cable condition','seg',SAT],['plinthCondition','Plinth / DP condition','seg',SAT],['fencingCondition','Fencing condition','seg',SAT]];
@@ -204,9 +204,11 @@ $('#photo').addEventListener('change',async e=>{
  const f=e.target.files[0];if(!f)return;$('#pinfo').style.color='';$('#pinfo').innerHTML='<span class="spin"></span>Compressing photo...';
  try{
   const url=URL.createObjectURL(f),img=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=url});
-  const sc=Math.min(1,1400/Math.max(img.width,img.height)),w=Math.round(img.width*sc),h=Math.round(img.height*sc);
-  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingQuality='high';x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);
-  let q=.8,d=c.toDataURL('image/jpeg',q);while(d.length*.75>300000&&q>.5){q-=.07;d=c.toDataURL('image/jpeg',q)}
+  let sc=Math.min(1,1280/Math.max(img.width,img.height)),w,h,q=.7;
+  const c=document.createElement('canvas'),x=c.getContext('2d');
+  const enc=qq=>{w=Math.round(img.width*sc);h=Math.round(img.height*sc);c.width=w;c.height=h;x.imageSmoothingQuality='high';x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);return c.toDataURL('image/jpeg',qq)};
+  let d=enc(q);
+  while(d.length*.75>120000&&(q>.45||Math.max(w,h)>800)){if(q>.45)q-=.05;else sc*=.85;d=enc(q)}
   photoData=d;photoDim=[w,h];URL.revokeObjectURL(url);$('#prev').src=d;$('#prev').style.display='block';
   $('#pinfo').textContent=`Ready: ${Math.round(f.size/1024)} KB reduced to ${Math.round(d.length*.75/1024)} KB`;$('#photoWrap').classList.remove('err');prog();
  }catch(err){photoData=null;$('#pinfo').style.color='var(--bad)';$('#pinfo').textContent='This photo could not be opened. Choose another one.'}
