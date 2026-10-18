@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site Inspection Report (SIR)</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--navy:#14263a;--steel:#e8edf2;--line:#c5cfda;--amber:#f2a900;--amber-d:#b97f00;--ok:#1f8a52;--bad:#c53030;--card:#fff;--tx:#1b2733;--mu:#5d6c7b}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--steel);color:var(--tx);font:16px/1.5 "Source Sans 3",system-ui,sans-serif}
+h1,h2,h3,.hd{font-family:Archivo,system-ui,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px 0;position:relative;overflow:hidden}
+.wrap{max-width:860px;margin:0 auto}
+header h1{margin:0;font-size:26px;font-weight:800;letter-spacing:.2px}
+header p{margin:2px 0 14px;color:#aebccb}
+.bolt{position:absolute;right:14px;top:10px;width:64px;height:64px}
+.bolt path{fill:none;stroke:var(--amber);stroke-width:3;stroke-linejoin:round;stroke-dasharray:140;stroke-dashoffset:140;animation:draw 1.4s .2s ease forwards,glow 2.4s 1.6s ease-in-out infinite}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes glow{50%{filter:drop-shadow(0 0 6px var(--amber))}}
+.tabs{display:flex;gap:4px}
+.tab{flex:1;max-width:220px;border:0;background:#1f3650;color:#c9d6e3;padding:12px 10px;font:700 15px Archivo;border-radius:10px 10px 0 0;cursor:pointer;transition:.2s}
+.tab.on{background:var(--steel);color:var(--navy)}
+main{max-width:860px;margin:0 auto;padding:16px}
+.view{display:none}.view.on{display:block;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+/* nameplate */
+.plate{background:var(--navy);color:#fff;border-radius:12px;border:2px solid var(--amber);padding:12px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px}
+.plate.sticky{position:sticky;top:6px;z-index:5;box-shadow:0 6px 18px #14263a44}
+.plate div span{display:block;font-size:12px;color:#9fb2c6}
+.plate div b{font:700 15px Archivo;word-break:break-word}
+.plate b.empty{color:#6d829a;font-weight:500}
+.plate b.pop{animation:pop .4s}
+@keyframes pop{40%{color:var(--amber);transform:scale(1.06)}}
+@media(max-width:560px){.plate{grid-template-columns:repeat(2,1fr)}}
+.card{background:var(--card);border-radius:14px;padding:18px;margin-top:16px;box-shadow:0 1px 3px #14263a1a}
+.card h2{margin:0 0 12px;font-size:18px;color:var(--navy);display:flex;align-items:center;gap:8px}
+.card h2:before{content:"";width:6px;height:20px;background:var(--amber);border-radius:3px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+label.f{display:block;font-weight:600;font-size:15px}
+label.f small{color:var(--bad)}
+input[type=text],input[type=tel],input[type=number],select,textarea,input[type=date]{width:100%;margin-top:5px;padding:13px 12px;font:17px "Source Sans 3";border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--tx);transition:.15s;appearance:none;-webkit-appearance:none}
+select{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%2314263a' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:38px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 4px #f2a90033}
+input[type=date]{font-weight:700;color:var(--navy);min-height:52px;cursor:pointer;border-color:var(--navy);background:#f7fafc}
+input[type=date]::-webkit-calendar-picker-indicator{width:22px;height:22px;cursor:pointer;opacity:.9}
+.err input,.err select,.err textarea{border-color:var(--bad)}
+.err .seg{outline:2px solid var(--bad);outline-offset:3px;border-radius:10px}
+.msg{color:var(--bad);font-size:13px;display:none;margin-top:3px}.err .msg{display:block;animation:in .2s}
+.seg{display:flex;margin-top:6px;border:2px solid var(--line);border-radius:10px;overflow:hidden}
+.seg label{flex:1;text-align:center;cursor:pointer;margin:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;padding:11px 6px;font-weight:600;font-size:15px;transition:.2s}
+.seg label+label span{border-left:2px solid var(--line)}
+.seg input:checked+span{background:var(--navy);color:#fff}
+.seg input:focus-visible+span{outline:3px solid var(--amber);outline-offset:-3px}
+/* photo */
+.drop{display:block;border:2.5px dashed var(--navy);border-radius:14px;padding:22px;text-align:center;cursor:pointer;background:#f7fafc;transition:.2s}
+.drop:hover{background:#fff7e0;border-color:var(--amber-d)}
+.drop input{display:none}
+.drop svg{width:42px;height:42px;stroke:var(--navy);fill:none;stroke-width:1.8}
+.drop .t{font:700 16px Archivo;margin-top:6px;display:block}
+.drop .s{color:var(--mu);font-size:14px}
+#prev{max-width:100%;max-height:320px;border-radius:10px;margin-top:12px;display:none;animation:in .4s}
+#pinfo{font-size:14px;color:var(--ok);font-weight:600;margin-top:6px}
+.btn{border:0;background:var(--amber);color:var(--navy);font:800 17px Archivo;padding:15px 22px;border-radius:12px;cursor:pointer;transition:.15s;width:100%}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 14px #f2a90055}
+.btn:active{transform:none}.btn:disabled{opacity:.6;cursor:wait;transform:none}
+.btn.alt{background:var(--navy);color:#fff}
+.btn.sm{width:auto;padding:9px 14px;font-size:14px}
+.bar{height:5px;background:#d7e0e9;border-radius:3px;overflow:hidden;margin-top:14px}
+.bar i{display:block;height:100%;width:0;background:var(--amber);transition:width .3s}
+/* reports */
+.filters{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:16px}
+@media(max-width:560px){.filters{grid-template-columns:1fr}}
+.note{color:var(--mu);font-size:14px;margin:10px 2px 0;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rep{background:#fff;border-radius:14px;margin-top:14px;overflow:hidden;box-shadow:0 1px 3px #14263a1a;animation:in .4s both}
+.rep .plate{border-radius:0;border:0;border-bottom:3px solid var(--amber)}
+.rep .body{padding:12px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.rep .ids{color:var(--mu);font-size:14px}
+.rep .acts{display:flex;gap:8px;flex-wrap:wrap}
+.det{display:none;padding:0 14px 14px;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:14px}
+.det.open{display:grid;animation:in .3s}
+.det div span{color:var(--mu)}
+.sk{height:130px;border-radius:14px;margin-top:14px;background:linear-gradient(90deg,#dfe6ed 25%,#eef2f6 50%,#dfe6ed 75%);background-size:200% 100%;animation:sh 1.2s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.empty{text-align:center;color:var(--mu);padding:40px 10px}
+/* modal */
+.modal{position:fixed;inset:0;background:#14263acc;display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal.on{display:flex}
+.box{background:#fff;border-radius:18px;padding:26px;max-width:380px;width:100%;text-align:center;animation:pop2 .4s}
+@keyframes pop2{from{transform:scale(.85);opacity:0}}
+.box h3{margin:10px 0 4px;font-size:22px;color:var(--navy)}
+.tick{width:76px;height:76px}
+.tick circle{fill:none;stroke:var(--ok);stroke-width:4;stroke-dasharray:226;stroke-dashoffset:226;animation:draw2 .6s forwards}
+.tick path{fill:none;stroke:var(--ok);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50;animation:draw2 .4s .5s forwards}
+@keyframes draw2{to{stroke-dashoffset:0}}
+.box .btn{margin-top:10px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition:none!important}}
+.rev{opacity:0;transform:translateY(22px);transition:opacity .6s,transform .6s cubic-bezier(.2,.7,.2,1)}.rev.vis{opacity:1;transform:none}
+.err{animation:shake .35s}@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.btn{position:relative;overflow:hidden}.rip{position:absolute;border-radius:50%;background:#fff9;transform:scale(0);animation:rp .6s linear;pointer-events:none}@keyframes rp{to{transform:scale(3.5);opacity:0}}
+.spin{display:inline-block;width:15px;height:15px;border:3px solid #14263a44;border-top-color:var(--navy);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px;margin-right:8px}@keyframes sp{to{transform:rotate(360deg)}}
+.bar i{background:linear-gradient(90deg,var(--amber),#ffd66b,var(--amber));background-size:200% 100%;animation:sh 1.5s linear infinite}
+header:after{content:"";position:absolute;left:0;bottom:0;height:3px;width:30%;background:linear-gradient(90deg,transparent,var(--amber),transparent);animation:run 2.6s linear infinite}@keyframes run{from{left:-30%}to{left:100%}}
+.seg input:checked+span{animation:pop3 .3s}@keyframes pop3{50%{transform:scale(1.1)}}
+.box{position:relative}.sk2{position:absolute;left:50%;top:62px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--amber);opacity:0;animation:fly 1s .45s ease-out forwards}
+@keyframes fly{0%{opacity:1;transform:rotate(var(--a)) translateY(0)}100%{opacity:0;transform:rotate(var(--a)) translateY(-80px)}}
+.th{width:100%;max-height:260px;object-fit:cover;border-radius:10px;margin-top:6px;background:var(--steel)}
+.seg span{font-size:14px}
+</style>
+</head>
+<body>
+<header>
+ <svg class="bolt" viewBox="0 0 64 64"><path d="M36 4L14 36h16l-4 24 24-34H34z"/></svg>
+ <div class="wrap">
+  <h1>Site Inspection Report (SIR)</h1>
+  <p>Transformer (DT) damage &middot; Azamgarh, Mau, Ballia</p>
+  <div class="tabs"><button class="tab on" data-v="vForm">New SIR</button><button class="tab" data-v="vList">Submitted Reports</button></div>
+ </div>
+</header>
+<main>
+<!-- FORM -->
+<section id="vForm" class="view on">
+ <div class="plate sticky" id="livePlate"></div>
+ <form id="f" novalidate>
+  <div class="card"><h2>Basic details</h2><div class="grid" id="s1"></div></div>
+  <div class="card"><h2>JE &amp; DT identification</h2><div class="grid" id="s2"></div></div>
+  <div class="card"><h2>Inspection</h2><div class="grid" id="s3"></div></div>
+  <div class="card"><h2>Load &amp; site condition</h2><div class="grid" id="s4"></div></div>
+  <div class="card"><h2>Photograph <small style="color:var(--bad);font:600 14px 'Source Sans 3'">(required)</small></h2>
+   <div id="photoWrap">
+    <label class="drop"><input type="file" id="photo" accept="image/*">
+     <svg viewBox="0 0 48 48"><rect x="5" y="12" width="38" height="28" rx="4"/><circle cx="24" cy="26" r="7"/><path d="M17 12l3-5h8l3 5"/></svg>
+     <span class="t">Choose or take a photo</span><span class="s">Gallery or camera. The photo is compressed automatically.</span></label>
+    <div class="msg">A photo is required.</div>
+    <img id="prev" alt="Photo preview"><div id="pinfo"></div>
+   </div>
+   <label class="f" style="margin-top:14px">Any other remark<textarea id="remark" rows="3" placeholder="Cause of damage, issues observed..."></textarea></label>
+  </div>
+  <div class="bar"><i id="prog"></i></div>
+  <button class="btn" id="sub" type="submit" style="margin-top:14px">Submit report</button>
+ </form>
+</section>
+<!-- LIST -->
+<section id="vList" class="view">
+ <div class="filters">
+  <select id="fDiv"><option value="">All circles</option><option value="AZAMGARH">Azamgarh</option><option value="MAU">Mau</option><option value="BALLIA">Ballia</option></select>
+  <input type="text" id="fQ" placeholder="Search substation, place, PR No, Unique No...">
+ </div>
+ <div class="note"><span id="cnt"></span><span><label style="cursor:pointer"><input type="checkbox" id="fAll"> Show all records</label> &nbsp; <a href="#" id="rf">Refresh</a></span></div>
+ <div id="list"></div>
+</section>
+</main>
+<div class="modal" id="ok"><div class="box">
+ <svg class="tick" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36"/><path d="M24 41l11 11 21-23"/></svg>
+ <h3>Report submitted</h3><div style="color:var(--mu)">Saved to the sheet and Drive folder.</div>
+ <button class="btn" id="pdfNow">Download PDF</button>
+ <button class="btn alt" id="newF">Fill a new SIR</button>
+</div></div>
+
+<script>
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbzJxZsEz-sXGOTSxsUQgeVGzBLDQIjglrmiM47UKejvTqI8c-_8RQ6jFvOTzQAZfaKG/exec'; // Apps Script > Deploy > Web app URL
+const $=s=>document.querySelector(s),today=new Date().toISOString().slice(0,10);
+const YN=['YES','NO'],SAT=['SATISFACTORY','UN_SATISFACTORY'];
+const DIVS={'EDC-I AZAMGARH':['EDD-I','EDD-II','EDD-III'],'EDC-II AZAMGARH':['EDD-IV','EDD-V','EDD-VI'],'EDC-MAU':['EDD I MAU','EDD II MAU'],'EDC-BALLIA':['EDD I BALLIA','EDD II BALLIA','EDD III BALLIA','EDD IV BALLIA']};
+const S1=[['dateOfDamage','Date of damage','date'],['dateOfSIR','Date of SIR','date'],['zone','Zone','sel',['AZAMGARH']],['circle','Circle','sel',Object.keys(DIVS)],['divisionName','Division name','sel',[]],['substationName','Substation name','text'],['placeOfDT','Place / location of DT','text'],['capacityOfDT','Capacity of DT','sel',['25 KVA','63 KVA','100 KVA','200 KVA','250 KVA','315 KVA','400 KVA','630 KVA']]];
+const S2=[['jeName','Name of JE (Distribution)','text'],['jeMobile','JE mobile no.','tel'],['dataId','Data ID','text'],['uniqueNo','Unique No.','text'],['prNo','PR No.','text']];
+const S3=[['htProtection','HT protection','seg',YN],['ltProtection','LT protection','seg',YN],['bodyEarthing','Body earthing','seg',YN],['neutralEarthing','Neutral earthing','seg',YN],['onsiteMaint','On-site maintenance required','seg',YN],['pictureTaken','Picture taken','seg',YN],['oilLevel','Oil level','seg',YN],['repeatedDamage','Repeated damage','seg',YN]];
+const S4=[['connectedLoad','Connected load (kW)','text'],['noOfConnections','No. of connections connected (qty)','text'],['ltCableCondition','LT cable condition','seg',SAT],['plinthCondition','Plinth / DP condition','seg',SAT],['fencingCondition','Fencing condition','seg',SAT]];
+const ALL=[...S1,...S2,...S3,...S4];
+const OPT=new Set(['dataId','connectedLoad','noOfConnections','prNo','jeName','jeMobile']);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function field([k,l,t,o]){
+ const req=!OPT.has(k)?' <small>*</small>':'';let c;
+ if(t==='sel')c=`<select id="${k}"><option value="">Select</option>${o.map(x=>`<option>${x}</option>`).join('')}</select>`;
+ else if(t==='seg')c=`<div class="seg">${o.map(x=>`<label><input type="radio" name="${k}" value="${x}"><span>${x.replace('_','-')}</span></label>`).join('')}</div>`;
+ else c=`<input id="${k}" type="${t}" ${t==='tel'?'inputmode="numeric" maxlength="10"':''} ${t==='date'?`max="${today}"`:''}>`;
+ return `<div data-k="${k}"><label class="f">${l}${req}${t==='seg'?'':c}</label>${t==='seg'?c:''}<div class="msg">${k==='jeMobile'?'Enter a 10-digit number':'This field is required'}</div></div>`;
+}
+[['s1',S1],['s2',S2],['s3',S3],['s4',S4]].forEach(([id,a])=>$('#'+id).innerHTML=a.map(field).join(''));
+$('#dateOfSIR').value=today;$('#zone').value='AZAMGARH';
+$('#circle').addEventListener('change',()=>{$('#divisionName').innerHTML='<option value="">Select</option>'+(DIVS[$('#circle').value]||[]).map(x=>`<option>${x}</option>`).join('')});
+const val=k=>{const e=$('#'+k);if(e)return e.value.trim();const r=document.querySelector(`input[name=${k}]:checked`);return r?r.value:''};
+document.querySelectorAll('input[type=date]').forEach(i=>i.addEventListener('click',()=>{try{i.showPicker()}catch(e){}}));
+const fmtD=s=>{if(!s)return'';const d=new Date(s);return isNaN(d)?s:d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
+const kva=c=>c?(/[a-z]/i.test(c)?c:c+' KVA'):'';
+const plateHTML=d=>[['Date of damage',fmtD(d.dateOfDamage)],['Date of SIR',fmtD(d.dateOfSIR)],['Division',d.divisionName],['Substation',d.substationName],['Place / location',d.placeOfDT],['DT capacity',kva(d.capacityOfDT)]]
+ .map(([l,v])=>`<div><span>${l}</span>${v?`<b>${esc(v)}</b>`:'<b class="empty">&mdash;</b>'}</div>`).join('');
+let last={};
+function plate(){const d={};['dateOfDamage','dateOfSIR','divisionName','substationName','placeOfDT','capacityOfDT'].forEach(k=>d[k]=val(k));
+ $('#livePlate').innerHTML=plateHTML(d);const v=Object.values(d),o=Object.values(last);
+ [...$('#livePlate').children].forEach((c,i)=>{if(v[i]&&v[i]!==o[i])c.querySelector('b').classList.add('pop')});last=d}
+plate();
+const REQ=ALL.filter(a=>!OPT.has(a[0])).map(a=>a[0]);
+const prog=()=>{$('#prog').style.width=((REQ.filter(k=>val(k)).length+(photoData?1:0))/(REQ.length+1)*100)+'%'};
+['input','change'].forEach(ev=>$('#f').addEventListener(ev,e=>{plate();prog();const w=e.target.closest('[data-k]');if(w)w.classList.remove('err')}));
+// photo
+let photoData=null,photoDim=[0,0];
+$('#photo').addEventListener('change',async e=>{
+ const f=e.target.files[0];if(!f)return;$('#pinfo').style.color='';$('#pinfo').innerHTML='<span class="spin"></span>Compressing photo...';
+ try{
+  const url=URL.createObjectURL(f),img=await new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=url});
+  const sc=Math.min(1,1400/Math.max(img.width,img.height)),w=Math.round(img.width*sc),h=Math.round(img.height*sc);
+  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingQuality='high';x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(img,0,0,w,h);
+  let q=.8,d=c.toDataURL('image/jpeg',q);while(d.length*.75>300000&&q>.5){q-=.07;d=c.toDataURL('image/jpeg',q)}
+  photoData=d;photoDim=[w,h];URL.revokeObjectURL(url);$('#prev').src=d;$('#prev').style.display='block';
+  $('#pinfo').textContent=`Ready: ${Math.round(f.size/1024)} KB reduced to ${Math.round(d.length*.75/1024)} KB`;$('#photoWrap').classList.remove('err');prog();
+ }catch(err){photoData=null;$('#pinfo').style.color='var(--bad)';$('#pinfo').textContent='This photo could not be opened. Choose another one.'}
+});
+// submit
+const collect=()=>{const d={};ALL.forEach(a=>d[a[0]]=val(a[0]));d.remark=$('#remark').value.trim();return d};
+let lastSaved=null;
+$('#f').addEventListener('submit',async e=>{
+ e.preventDefault();let bad=null;
+ [...REQ,'jeMobile'].forEach(k=>{const w=document.querySelector(`[data-k=${k}]`),v=val(k);let ok=k==='jeMobile'?(!v||/^\d{10}$/.test(v)):!!v;w.classList.remove('err');void w.offsetWidth;w.classList.toggle('err',!ok);if(!ok&&!bad)bad=w});
+ if(!photoData){$('#photoWrap').classList.add('err');if(!bad)bad=$('#photoWrap')}
+ if(bad){bad.scrollIntoView({behavior:'smooth',block:'center'});return}
+ const b=$('#sub');b.disabled=true;b.innerHTML='<span class="spin"></span>Submitting...';
+ const d=collect(),body={...d,timestamp:new Date().toISOString(),photoBase64:photoData.split(',')[1],photoType:'image/jpeg'};
+ try{await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(body)});lastSaved={d,img:photoData,dim:photoDim};DATA={recent:null,all:null};localStorage.removeItem('sir_recent');localStorage.removeItem('sir_all');
+  const bx=$('#ok .box');bx.querySelectorAll('.sk2').forEach(n=>n.remove());for(let i=0;i<12;i++){const n=document.createElement('i');n.className='sk2';n.style.setProperty('--a',i*30+'deg');bx.appendChild(n)}
+  $('#ok').classList.add('on')}catch(err){alert('Check your internet connection and Script URL. The report was not submitted.')}
+ b.disabled=false;b.textContent='Submit report';
+});
+$('#newF').onclick=()=>{$('#ok').classList.remove('on');$('#f').reset();$('#dateOfSIR').value=today;$('#zone').value='AZAMGARH';$('#circle').dispatchEvent(new Event('change'));photoData=null;$('#prev').style.display='none';$('#pinfo').textContent='';plate();prog();scrollTo({top:0,behavior:'smooth'})};
+$('#pdfNow').onclick=()=>makePDF(lastSaved.d,lastSaved.img,lastSaved.dim);
+// PDF
+const LAB=[['dateOfDamage','Date of damage'],['dateOfSIR','Date of SIR'],['zone','Zone'],['circle','Circle'],['divisionName','Division'],['substationName','Substation'],['placeOfDT','Place / location of DT'],['capacityOfDT','Capacity of DT'],['jeName','Name of JE'],['jeMobile','JE mobile'],['dataId','Data ID'],['uniqueNo','Unique No.'],['prNo','PR No.'],['htProtection','HT protection'],['ltProtection','LT protection'],['bodyEarthing','Body earthing'],['neutralEarthing','Neutral earthing'],['onsiteMaint','On-site maintenance required'],['pictureTaken','Picture taken'],['oilLevel','Oil level'],['repeatedDamage','Repeated damage'],['connectedLoad','Connected load (kW)'],['noOfConnections','No. of connections'],['ltCableCondition','LT cable condition'],['plinthCondition','Plinth / DP condition'],['fencingCondition','Fencing condition'],['remark','Remark']];
+function makePDF(d,img,dim){
+ const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+ doc.setFillColor(20,38,58);doc.rect(0,0,210,24,'F');doc.setTextColor(255);doc.setFontSize(17);doc.setFont('helvetica','bold');doc.text('Site Inspection Report (SIR)',14,15);
+ doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text('Distribution Transformer Damage',196,15,{align:'right'});doc.setFillColor(242,169,0);doc.rect(0,24,210,2,'F');
+ let y=36;doc.setTextColor(27,39,51);doc.setFontSize(10.5);
+ LAB.forEach(([k,l],i)=>{let v=d[k];if(k.startsWith('date'))v=fmtD(v);const t=doc.splitTextToSize(String(v||'-'),110),h=Math.max(8,t.length*5+3);
+  if(y+h>280){doc.addPage();y=16}if(i%2===0){doc.setFillColor(238,242,246);doc.rect(14,y-5.5,182,h,'F')}
+  doc.setFont('helvetica','bold');doc.text(l,17,y);doc.setFont('helvetica','normal');doc.text(t,82,y);y+=h});
+ y+=4;
+ if(img){let w=90,h=w*dim[1]/dim[0];if(h>110){h=110;w=h*dim[0]/dim[1]}if(y+h+8>285){doc.addPage();y=16}doc.setFont('helvetica','bold');doc.text('Photograph',14,y);doc.addImage(img,'JPEG',14,y+3,w,h)}
+ doc.save('SIR_'+(d.uniqueNo||d.placeOfDT||'report').replace(/[^\w-]+/g,'_')+'.pdf');
+}
+// reports (cached, fast)
+let DATA={recent:null,all:null},shown=25,items=[];
+const mode=()=>($('#fAll').checked||$('#fQ').value.trim())?'all':'recent';
+const effT=d=>{const x=new Date(d.dateOfSIR);return(isNaN(x)||x.getFullYear()<2000)?new Date(d.timestamp).getTime():x.getTime()};
+const fid=u=>((u||'').match(/[-\w]{25,}/)||[])[0];
+async function load(force){
+ const m=mode();
+ if(DATA[m]&&!force){render();return}
+ if(!DATA[m]){try{const c=localStorage.getItem('sir_'+m);if(c){DATA[m]=JSON.parse(c);render()}}catch(e){}}
+ if(!DATA[m])$('#list').innerHTML='<div class="sk"></div><div class="sk"></div><div class="sk"></div>';
+ try{const r=await fetch(SCRIPT_URL+'?mode='+m),j=await r.json();if(j.result!=='success')throw 0;DATA[m]=j.reports;try{localStorage.setItem('sir_'+m,JSON.stringify(j.reports))}catch(e){}render()}
+ catch(e){if(!DATA[m])$('#list').innerHTML='<div class="empty">Could not load reports. Check the Script URL and that the web app access is set to Anyone.</div>'}
+}
+function render(){
+ const m=mode(),src=DATA[m];if(!src)return;
+ const dv=$('#fDiv').value,q=$('#fQ').value.trim().toLowerCase(),cut=Date.now()-30*864e5;
+ items=src.filter(r=>{const d=r.d;if(dv&&!String(d.circle||'').toUpperCase().includes(dv))return false;
+  if(q&&!Object.values(d).some(v=>String(v).toLowerCase().includes(q)))return false;
+  if(m==='recent'&&effT(d)<cut)return false;return true}).sort((a,b)=>effT(b.d)-effT(a.d));
+ $('#cnt').innerHTML=`<span><b id="cn">0</b> reports ${m==='all'?'(all records)':'(last 30 days)'}</span>`;
+ let n=items.length,i=0,st=Math.max(1,Math.ceil(n/18));const t=setInterval(()=>{i=Math.min(n,i+st);$('#cn').textContent=i;if(i>=n)clearInterval(t)},30);
+ $('#list').innerHTML=n?items.slice(0,shown).map((r,i)=>{const d=r.d;return `<article class="rep" style="animation-delay:${Math.min(i,8)*40}ms">
+  <div class="plate">${plateHTML(d)}</div>
+  <div class="body"><div class="ids">${esc(d.circle||'')} &nbsp; PR: ${esc(d.prNo||'-')} &nbsp; Unique: ${esc(d.uniqueNo||'-')}</div>
+  <div class="acts"><button class="btn alt sm" data-t="${i}">Details</button>${r.pdfUrl?`<a class="btn sm" style="text-decoration:none;display:inline-block" target="_blank" href="${esc(r.pdfUrl)}">PDF</a>`:`<button class="btn sm" data-p="${i}">PDF</button>`}</div></div>
+  <div class="det" id="det${i}">${LAB.slice(2).map(([k,l])=>`<div><span>${l}:</span> ${esc(d[k]||'-')}</div>`).join('')}${fid(d.photoUrl)?`<div style="grid-column:1/-1"><a target="_blank" href="${esc(d.photoUrl)}"><img class="th" alt="Site photo" data-src="https://drive.google.com/thumbnail?id=${fid(d.photoUrl)}&sz=w500"></a></div>`:''}</div></article>`}).join('')
+  +(n>shown?`<button class="btn alt" id="more" style="margin-top:14px">Load more (${n-shown} left)</button>`:''):'<div class="empty">No reports found. Change the circle or search, or tick "Show all records".</div>';
+}
+$('#list').addEventListener('click',e=>{const t=e.target.closest('[data-t]'),p=e.target.closest('[data-p]');
+ if(t){const d=$('#det'+t.dataset.t);d.classList.toggle('open');const im=d.querySelector('img[data-src]');if(im&&d.classList.contains('open')){im.src=im.dataset.src;im.removeAttribute('data-src')}}
+ if(p)makePDF(items[p.dataset.p].d,null);
+ if(e.target.id==='more'){shown+=25;render()}});
+const onF=()=>{shown=25;DATA[mode()]?render():load()};
+['fDiv','fAll'].forEach(i=>$('#'+i).addEventListener('change',onF));
+let tm;$('#fQ').addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(onF,200)});
+$('#rf').onclick=e=>{e.preventDefault();load(true)};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab,.view').forEach(x=>x.classList.remove('on'));b.classList.add('on');$('#'+b.dataset.v).classList.add('on');$('.tabs').dataset.on=b.dataset.v;if(b.dataset.v==='vList')load()});
+// motion: reveal on scroll + button ripple
+const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target)}}),{threshold:.08});
+document.querySelectorAll('#vForm .card').forEach(c=>{c.classList.add('rev');io.observe(c)});
+document.addEventListener('click',e=>{const b=e.target.closest('.btn');if(!b)return;const r=b.getBoundingClientRect(),s=document.createElement('span'),z=Math.max(r.width,r.height);s.className='rip';s.style.cssText=`width:${z}px;height:${z}px;left:${e.clientX-r.left-z/2}px;top:${e.clientY-r.top-z/2}px`;b.appendChild(s);setTimeout(()=>s.remove(),600)});
+</script>
+</body>
+</html>
