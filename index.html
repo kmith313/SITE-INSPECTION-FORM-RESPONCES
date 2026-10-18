@@ -223,9 +223,9 @@ $('#f').addEventListener('submit',async e=>{
  if(bad){bad.scrollIntoView({behavior:'smooth',block:'center'});return}
  const b=$('#sub');b.disabled=true;b.innerHTML='<span class="spin"></span>Submitting...';
  const d=collect(),body={...d,timestamp:new Date().toISOString(),photoBase64:photoData.split(',')[1],photoType:'image/jpeg'};
- try{await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(body)});lastSaved={d,img:photoData,dim:photoDim};DATA={recent:null,all:null};localStorage.removeItem('sir_recent');localStorage.removeItem('sir_all');
+ try{let res=null;try{const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(body)});res=await r.json()}catch(e2){res=null}if(res&&res.result==='error')throw new Error(res.error);lastSaved={d,img:photoData,dim:photoDim};DATA={recent:null,all:null};localStorage.removeItem('sir_recent');localStorage.removeItem('sir_all');
   const bx=$('#ok .box');bx.querySelectorAll('.sk2').forEach(n=>n.remove());for(let i=0;i<12;i++){const n=document.createElement('i');n.className='sk2';n.style.setProperty('--a',i*30+'deg');bx.appendChild(n)}
-  $('#ok').classList.add('on')}catch(err){alert('Check your internet connection and Script URL. The report was not submitted.')}
+  $('#ok').classList.add('on')}catch(err){alert('Report was NOT saved. '+(err&&err.message?err.message:'Check your internet connection and Script URL.'))}
  b.disabled=false;b.textContent='Submit report';
 });
 $('#newF').onclick=()=>{$('#ok').classList.remove('on');$('#f').reset();$('#dateOfSIR').value=today;$('#zone').value='AZAMGARH';$('#circle').dispatchEvent(new Event('change'));photoData=null;$('#prev').style.display='none';$('#pinfo').textContent='';plate();prog();scrollTo({top:0,behavior:'smooth'})};
