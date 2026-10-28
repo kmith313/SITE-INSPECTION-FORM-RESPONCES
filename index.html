@@ -112,6 +112,7 @@ header:after{content:"";position:absolute;left:0;bottom:0;height:3px;width:30%;b
 @keyframes fly{0%{opacity:1;transform:rotate(var(--a)) translateY(0)}100%{opacity:0;transform:rotate(var(--a)) translateY(-80px)}}
 .th{width:100%;max-height:260px;object-fit:cover;border-radius:10px;margin-top:6px;background:var(--steel)}
 .seg span{font-size:14px}
+.sgbox{border:2px dashed var(--line);border-radius:10px;height:90px;margin:8px 0;display:flex;align-items:center;justify-content:center;background:#fff}.sgbox img{max-width:100%;max-height:100%}.st{font-size:13px;margin-top:4px;min-height:18px;font-weight:600}
 </style>
 </head>
 <body>
@@ -120,7 +121,7 @@ header:after{content:"";position:absolute;left:0;bottom:0;height:3px;width:30%;b
  <div class="wrap">
   <h1>Site Inspection Report (SIR)</h1>
   <p>Transformer (DT) damage &middot; Azamgarh, Mau, Ballia</p>
-  <div class="tabs"><button class="tab on" data-v="vForm">New SIR</button><button class="tab" data-v="vList">Submitted Reports</button></div>
+  <div class="tabs"><button class="tab on" data-v="vForm">New SIR</button><button class="tab" data-v="vList">Submitted Reports</button><button class="tab" data-v="vSign" id="tSign" style="display:none">Signatures</button></div>
  </div>
 </header>
 <main>
@@ -155,6 +156,12 @@ header:after{content:"";position:absolute;left:0;bottom:0;height:3px;width:30%;b
  <div class="note"><span id="cnt"></span><span><label style="cursor:pointer"><input type="checkbox" id="fAll"> Show all records (with archive)</label> &nbsp; <a href="#" id="rf">Refresh</a></span></div>
  <div id="dl" style="display:none;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px"><span style="font-weight:600">Download this list (<span id="dlN">0</span>):</span><button class="btn alt sm" id="dlX" type="button">Download Excel (.xlsx)</button></div>
  <div id="list"></div>
+</section>
+<section id="vSign" class="view">
+ <div class="card"><h2>Signatures setup</h2>
+  <p style="margin:0 0 10px;color:var(--mu)">Upload the EE, AE and JE (Work Shop) signature once for each workshop. It will appear automatically in the SIR PDF whenever that workshop's circle is selected.</p>
+  <label class="f">Admin PIN<input id="pin" type="password" inputmode="numeric" autocomplete="off"></label></div>
+ <div id="sgrid"></div>
 </section>
 </main>
 <div class="modal" id="ok"><div class="box">
@@ -231,7 +238,7 @@ $('#f').addEventListener('submit',async e=>{
  b.disabled=false;b.textContent='Submit report';
 });
 $('#newF').onclick=()=>{$('#ok').classList.remove('on');$('#f').reset();$('#dateOfSIR').value=today;$('#zone').value='AZAMGARH';$('#circle').dispatchEvent(new Event('change'));photoData=null;$('#prev').style.display='none';$('#pinfo').textContent='';plate();prog();scrollTo({top:0,behavior:'smooth'})};
-$('#pdfNow').onclick=()=>makePDF(lastSaved.d,lastSaved.img,lastSaved.dim);
+$('#pdfNow').onclick=()=>sigsReady.then(()=>makePDF(lastSaved.d,lastSaved.img,lastSaved.dim));
 // PDF
 const LAB=[['dateOfDamage','Date of damage'],['dateOfSIR','Date of SIR'],['zone','Zone'],['circle','Circle'],['divisionName','Division'],['substationName','Substation'],['placeOfDT','Place / location of DT'],['capacityOfDT','Capacity of DT'],['jeName','Name of JE'],['jeMobile','JE mobile'],['dataId','Data ID'],['uniqueNo','Unique No.'],['prNo','PR No.'],['htProtection','HT protection'],['ltProtection','LT protection'],['bodyEarthing','Body earthing'],['neutralEarthing','Neutral earthing'],['onsiteMaint','On-site maintenance required'],['pictureTaken','Picture taken'],['oilLevel','Oil level'],['repeatedDamage','Repeated damage'],['connectedLoad','Connected load (KVA)'],['noOfConnections','No. of connections'],['ltCableCondition','LT cable condition'],['plinthCondition','Plinth / DP condition'],['fencingCondition','Fencing condition'],['remark','Remark']];
 const dmy=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+'/'+m[2]+'/'+m[1]:(s||'')};
@@ -261,7 +268,8 @@ function makePDF(d,img,dim){
  if(img){const mw=LW-6,mh=BH-6;let w=mw,h=w*dim[1]/dim[0];if(h>mh){h=mh;w=h*dim[0]/dim[1]}doc.addImage(img,'JPEG',X+(LW-w)/2,y+(BH-h)/2,w,h)}
  else{doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(120);doc.text('Photograph: see the photo link in the sheet',X+4,y+8)}
  doc.setTextColor(0);doc.setFont('helvetica','bold');doc.setFontSize(9);
- ['EE (WORK SHOP)','AE (WORK SHOP)','JE (WORK SHOP)'].forEach((t,i)=>{const cy=y+BH/3*i;if(i)doc.line(X+LW,cy,X+W,cy);doc.text(t,X+LW+(W-LW)/2,cy+BH/3*.72,{align:'center'})});
+ const sg=SIGS[wkOf(d.circle)]||{};
+ [['EE (WORK SHOP)','EE'],['AE (WORK SHOP)','AE'],['JE (WORK SHOP)','JE']].forEach(([t,r],i)=>{const cy=y+BH/3*i;if(i)doc.line(X+LW,cy,X+W,cy);if(sg[r]){try{doc.addImage(sg[r],'JPEG',X+LW+(W-LW)/2-19.5,cy+2.5,39,13)}catch(e){}}doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(0);doc.text(t,X+LW+(W-LW)/2,cy+BH/3*.72,{align:'center'})});
  doc.save('SIR_'+String(d.uniqueNo&&d.uniqueNo!=='NA'?d.uniqueNo:(d.prNo||d.placeOfDT||'report')).replace(/[^\w-]+/g,'_')+'.pdf');
 }
 // reports (cached, fast)
@@ -295,7 +303,7 @@ function render(){
 }
 $('#list').addEventListener('click',e=>{const t=e.target.closest('[data-t]'),p=e.target.closest('[data-p]');
  if(t){const d=$('#det'+t.dataset.t);d.classList.toggle('open');const im=d.querySelector('img[data-src]');if(im&&d.classList.contains('open')){im.src=im.dataset.src;im.removeAttribute('data-src')}}
- if(p)makePDF(items[p.dataset.p].d,null);
+ if(p)sigsReady.then(()=>makePDF(items[p.dataset.p].d,null));
  if(e.target.id==='more'){shown+=25;render()}});
 const onF=()=>{shown=25;DATA[mode()]?render():load()};
 ['fDiv','fAll'].forEach(i=>$('#'+i).addEventListener('change',onF));
@@ -313,6 +321,28 @@ $('#dlX').onclick=()=>{
  ws['!cols']=head.map((h,i)=>({wch:i===0?5:Math.min(34,Math.max(13,String(h).length+2))}));
  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'SIR List');
  XLSX.writeFile(wb,fname()+'.xlsx')};
+// ---- signatures: per workshop (Azamgarh / Mau / Ballia), roles EE / AE / JE ----
+let SIGS={};try{SIGS=JSON.parse(localStorage.getItem('sir_sigs')||'{}')}catch(e){}
+const wkOf=c=>{c=String(c||'').toUpperCase();return c.includes('AZAMGARH')?'Azamgarh':c.includes('MAU')?'Mau':c.includes('BALLIA')?'Ballia':''};
+const sigsReady=fetch(SCRIPT_URL+'?mode=sigs').then(r=>r.json()).then(j=>{if(j.result==='success'){SIGS=j.sigs||{};try{localStorage.setItem('sir_sigs',JSON.stringify(SIGS))}catch(e){}}}).catch(()=>{});
+const WKS=['Azamgarh','Mau','Ballia'],ROLES=[['EE','EE (WORK SHOP)'],['AE','AE (WORK SHOP)'],['JE','JE (WORK SHOP)']],pend={};
+function drawSign(){$('#sgrid').innerHTML=WKS.map(w=>`<div class="card"><h2>${w} workshop</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">${ROLES.map(([r,l])=>`<div style="text-align:center"><b>${l}</b><div class="sgbox"><img id="im_${w}_${r}" alt="No signature yet" ${SIGS[w]&&SIGS[w][r]?`src="${SIGS[w][r]}"`:''}></div><input type="file" accept="image/*" data-w="${w}" data-r="${r}"><button class="btn sm" data-up="${w}|${r}" type="button" style="margin-top:6px" disabled>Save signature</button><div class="st" id="st_${w}_${r}"></div></div>`).join('')}</div></div>`).join('')}
+$('#sgrid').addEventListener('change',async e=>{const i=e.target;if(!i.dataset.w)return;const f=i.files[0];if(!f)return;const k=i.dataset.w+'_'+i.dataset.r,st=$('#st_'+k);
+ try{const u=URL.createObjectURL(f),img=await new Promise((a,b)=>{const m=new Image();m.onload=()=>a(m);m.onerror=b;m.src=u});
+  const c=document.createElement('canvas');c.width=360;c.height=120;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,360,120);
+  const s=Math.min(352/img.width,112/img.height),w=img.width*s,h=img.height*s;x.drawImage(img,(360-w)/2,(120-h)/2,w,h);
+  let q=.9,d=c.toDataURL('image/jpeg',q);while(d.length>40000&&q>.4){q-=.1;d=c.toDataURL('image/jpeg',q)}
+  URL.revokeObjectURL(u);pend[k]=d;$('#im_'+k).src=d;st.style.color='';st.textContent='Ready to save';i.parentNode.querySelector('[data-up]').disabled=false}
+ catch(err){st.style.color='var(--bad)';st.textContent='Could not open this image'}});
+$('#sgrid').addEventListener('click',async e=>{const b=e.target.closest('[data-up]');if(!b)return;const [w,r]=b.dataset.up.split('|'),k=w+'_'+r,st=$('#st_'+k);
+ if(!$('#pin').value.trim()){st.style.color='var(--bad)';st.textContent='Enter the Admin PIN above';return}
+ b.disabled=true;st.style.color='';st.innerHTML='<span class="spin"></span>Saving...';
+ try{const res=await(await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveSig',pin:$('#pin').value.trim(),workshop:w,role:r,image:pend[k]})})).json();
+  if(res.result!=='success')throw new Error(res.error||'Failed');
+  (SIGS[w]=SIGS[w]||{})[r]=pend[k];try{localStorage.setItem('sir_sigs',JSON.stringify(SIGS))}catch(e){}
+  st.style.color='var(--ok)';st.textContent='Saved'}catch(err){b.disabled=false;st.style.color='var(--bad)';st.textContent=err.message}});
+if(location.hash==='#signatures')$('#tSign').style.display='';
+$('#tSign').addEventListener('click',drawSign);
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab,.view').forEach(x=>x.classList.remove('on'));b.classList.add('on');$('#'+b.dataset.v).classList.add('on');$('.tabs').dataset.on=b.dataset.v;if(b.dataset.v==='vList')load()});
 // motion: reveal on scroll + button ripple
 const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('vis');io.unobserve(x.target)}}),{threshold:.08});
